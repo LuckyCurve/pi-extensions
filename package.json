@@ -1,0 +1,16 @@
+{
+  "name": "pi-extensions",
+  "version": "1.0.0",
+  "description": "Personal pi-coding-agent extensions",
+  "license": "MIT",
+  "keywords": ["pi-package"],
+  "dependencies": {
+    "shell-quote": "^1.8.3"
+  },
+  "pi": {
+    "extensions": [
+      "./permission/permission.ts",
+      "./token-rate/token-rate.ts"
+    ]
+  }
+}
