@@ -2,8 +2,13 @@
   "name": "pi-extensions",
   "version": "1.0.0",
   "description": "Personal pi-coding-agent extensions",
+  "type": "module",
   "license": "MIT",
   "keywords": ["pi-package"],
+  "peerDependencies": {
+    "@mariozechner/pi-ai": "^0.50.0",
+    "@mariozechner/pi-coding-agent": "^0.50.0"
+  },
   "dependencies": {
     "shell-quote": "^1.8.3"
   },
