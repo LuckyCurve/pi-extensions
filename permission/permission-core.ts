@@ -31,12 +31,12 @@ export const LEVEL_INDEX: Record<PermissionLevel, number> = {
   bypassed: 4,
 };
 
-export const LEVEL_INFO: Record<PermissionLevel, { label: string; desc: string }> = {
-  minimal: { label: "Minimal", desc: "Read-only" },
-  low: { label: "Low", desc: "File ops only" },
-  medium: { label: "Medium", desc: "Dev operations" },
-  high: { label: "High", desc: "Full operations" },
-  bypassed: { label: "Bypassed", desc: "All checks disabled" },
+export const LEVEL_INFO: Record<PermissionLevel, { label: string; desc: string; icon: string }> = {
+  minimal: { label: "Read Only", desc: "Read-only", icon: "🟢" },
+  low: { label: "File Write", desc: "File ops only", icon: "🟡" },
+  medium: { label: "Dev Ops", desc: "Dev operations", icon: "🟠" },
+  high: { label: "Full Access", desc: "Full operations", icon: "🔴" },
+  bypassed: { label: "No Limit", desc: "All checks disabled", icon: "⚫" },
 };
 
 export const PERMISSION_MODE_INFO: Record<PermissionMode, { label: string; desc: string }> = {
@@ -45,11 +45,11 @@ export const PERMISSION_MODE_INFO: Record<PermissionMode, { label: string; desc:
 };
 
 export const LEVEL_ALLOWED_DESC: Record<PermissionLevel, string> = {
-  minimal: "read-only (cat, ls, grep, git status/diff/log, npm list, version checks)",
-  low: "read-only + file write/edit",
-  medium: "dev ops (install packages, build, test, git commit/pull, file operations)",
-  high: "full operations except dangerous commands",
-  bypassed: "all operations",
+  minimal: "🟢 Read Only — cat, ls, grep, git status/diff/log, npm list, version checks",
+  low: "🟡 File Write — read-only + file write/edit",
+  medium: "🟠 Dev Ops — install packages, build, test, git commit/pull, file operations",
+  high: "🔴 Full Access — full operations except dangerous commands",
+  bypassed: "⚫ No Limit — all operations",
 };
 
 export interface Classification {

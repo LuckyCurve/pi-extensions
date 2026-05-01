@@ -14,21 +14,25 @@
  *   Use PI_PERMISSION_LEVEL=bypassed for CI/containers (dangerous!)
  *
  * Levels:
- *   minimal - Read-only mode (default)
+ *   minimal - 🟢 Read Only (default)
  *             ✅ Read files, ls, grep, git status/log/diff
  *             ❌ No file modifications, no commands with side effects
  *
- *   low    - File operations only
+ *   low     - 🟡 File Write
  *            ✅ Create/edit files in project directory
  *            ❌ No package installs, no git commits, no builds
  *
- *   medium - Development operations
+ *   medium  - 🟠 Dev Ops
  *            ✅ npm/pip install, git commit/pull, make/build
  *            ❌ No git push, no sudo, no production changes
  *
- *   high   - Full operations
+ *   high    - 🔴 Full Access
  *            ✅ git push, deployments, scripts
  *            ⚠️ Still prompts for destructive commands (rm -rf, etc.)
+ *
+ *   bypassed - ⚫ No Limit
+ *            ✅ All operations allowed
+ *            ⚠️ All permission checks disabled!
  *
  * Usage:
  *   pi --extension ./permission-hook.ts
@@ -94,23 +98,23 @@ function playPermissionSound(): void {
 const BOLD = "\x1b[1m";
 const RESET = "\x1b[0m";
 const RED = "\x1b[31m";
+const ORANGE = "\x1b[38;5;208m";
 const YELLOW = "\x1b[33m";
 const GREEN = "\x1b[32m";
-const CYAN = "\x1b[36m";
 const DIM = "\x1b[2m";
 
 const LEVEL_COLORS: Record<PermissionLevel, string> = {
-  minimal: RED,
+  minimal: GREEN,
   low: YELLOW,
-  medium: CYAN,
-  high: GREEN,
+  medium: ORANGE,
+  high: RED,
   bypassed: DIM,
 };
 
 function getStatusText(level: PermissionLevel): string {
   const info = LEVEL_INFO[level];
   const color = LEVEL_COLORS[level];
-  return `${BOLD}${color}${info.label}${RESET} ${DIM}- ${info.desc}${RESET}`;
+  return `${info.icon} ${BOLD}${color}${info.label}${RESET}`;
 }
 
 // ============================================================================
@@ -294,10 +298,10 @@ export async function handlePermissionCommand(
 
       setLevel(state, newLevel, scope === "Global (persists)", ctx);
       const saveMsg = scope === "Global (persists)" ? " (saved globally)" : " (session only)";
-      ctx.ui.notify(`Permission: ${LEVEL_INFO[newLevel].label}${saveMsg}`, "info");
+      ctx.ui.notify(`Permission → ${LEVEL_INFO[newLevel].icon} ${LEVEL_INFO[newLevel].label}${saveMsg}`, "info");
     } else {
       setLevel(state, newLevel, false, ctx);
-      ctx.ui.notify(`Permission: ${LEVEL_INFO[newLevel].label}`, "info");
+      ctx.ui.notify(`Permission → ${LEVEL_INFO[newLevel].icon} ${LEVEL_INFO[newLevel].label}`, "info");
     }
     return;
   }
@@ -305,7 +309,7 @@ export async function handlePermissionCommand(
   // Show current level (no UI)
   if (!hasInteractiveUI(ctx)) {
     ctx.ui.notify(
-      `Current permission: ${LEVEL_INFO[state.currentLevel].label} (${LEVEL_INFO[state.currentLevel].desc})`,
+      `Current permission: ${LEVEL_INFO[state.currentLevel].icon} ${LEVEL_INFO[state.currentLevel].label} — ${LEVEL_INFO[state.currentLevel].desc}`,
       "info"
     );
     return;
@@ -315,7 +319,7 @@ export async function handlePermissionCommand(
   const options = LEVELS.map((level) => {
     const info = LEVEL_INFO[level];
     const marker = level === state.currentLevel ? " ← current" : "";
-    return `${info.label}: ${info.desc}${marker}`;
+    return `${info.icon} ${info.label}${marker}`;
   });
 
   const choice = await ctx.ui.select("Select permission level", options);
@@ -330,7 +334,7 @@ export async function handlePermissionCommand(
 
   setLevel(state, newLevel, scope === "Global (persists)", ctx);
   const saveMsg = scope === "Global (persists)" ? " (saved globally)" : " (session only)";
-  ctx.ui.notify(`Permission: ${LEVEL_INFO[newLevel].label}${saveMsg}`, "info");
+  ctx.ui.notify(`Permission → ${LEVEL_INFO[newLevel].icon} ${LEVEL_INFO[newLevel].label}${saveMsg}`, "info");
 }
 
 /** Handle /permission-mode command */
@@ -415,9 +419,9 @@ export function handleSessionStart(state: PermissionState, ctx: any): void {
       ctx.ui.setStatus("authority", getStatusText(state.currentLevel));
     }
     if (state.currentLevel === "bypassed") {
-      ctx.ui.notify("⚠️ Permission bypassed - all checks disabled!", "warning");
+      ctx.ui.notify("⚫ Permission bypassed — all checks disabled!", "warning");
     } else if (!isQuietMode(ctx)) {
-      ctx.ui.notify(`Permission: ${LEVEL_INFO[state.currentLevel].label} (use /permission to change)`, "info");
+      ctx.ui.notify(`Permission: ${LEVEL_INFO[state.currentLevel].icon} ${LEVEL_INFO[state.currentLevel].label} (use /permission to change)`, "info");
     }
     if (state.permissionMode === "block") {
       ctx.ui.notify("Permission mode: Block (use /permission-mode to change)", "info");
@@ -488,7 +492,7 @@ User can re-run with: PI_PERMISSION_LEVEL=${requiredLevel} pi -p "..."`
     return {
       block: true,
       reason: `Blocked by permission (${state.currentLevel}, mode: block). Command: ${command}
-Requires ${requiredInfo.label}. Allowed at this level: ${LEVEL_ALLOWED_DESC[state.currentLevel]}
+Requires ${requiredInfo.icon} ${requiredInfo.label}. Allowed at this level: ${LEVEL_ALLOWED_DESC[state.currentLevel]}
 Use /permission ${requiredLevel} or /permission-mode ask to enable prompts.`
     };
   }
@@ -496,15 +500,15 @@ Use /permission ${requiredLevel} or /permission-mode ask to enable prompts.`
   // Interactive mode: prompt
   playPermissionSound();
   const choice = await ctx.ui.select(
-    `Requires ${requiredInfo.label}`,
-    ["Allow once", `Allow all (${requiredInfo.label})`, "Cancel"]
+    `Requires ${requiredInfo.icon} ${requiredInfo.label}`,
+    ["Allow once", `Allow all (${requiredInfo.icon} ${requiredInfo.label})`, "Cancel"]
   );
 
   if (choice === "Allow once") return undefined;
 
-  if (choice === `Allow all (${requiredInfo.label})`) {
+  if (choice === `Allow all (${requiredInfo.icon} ${requiredInfo.label})`) {
     setLevel(state, requiredLevel, true, ctx);
-    ctx.ui.notify(`Permission → ${requiredInfo.label} (saved globally)`, "info");
+    ctx.ui.notify(`Permission → ${requiredInfo.icon} ${requiredInfo.label} (saved globally)`, "info");
     return undefined;
   }
 
@@ -530,7 +534,7 @@ export async function handleWriteToolCall(
   if (LEVEL_INDEX[state.currentLevel] >= LEVEL_INDEX["low"]) return undefined;
 
   const action = toolName === "write" ? "Write" : "Edit";
-  const message = `Requires Low: ${action} ${filePath}`;
+  const message = `Requires ${LEVEL_INFO["low"].icon} ${LEVEL_INFO["low"].label}: ${action} ${filePath}`;
 
   // Print mode: block
   if (!hasInteractiveUI(ctx)) {
@@ -546,7 +550,7 @@ User can re-run with: PI_PERMISSION_LEVEL=low pi -p "..."`
     return {
       block: true,
       reason: `Blocked by permission (${state.currentLevel}, mode: block). ${action}: ${filePath}
-Requires Low. Allowed at this level: ${LEVEL_ALLOWED_DESC[state.currentLevel]}
+Requires ${LEVEL_INFO["low"].icon} ${LEVEL_INFO["low"].label}. Allowed at this level: ${LEVEL_ALLOWED_DESC[state.currentLevel]}
 Use /permission low or /permission-mode ask to enable prompts.`
     };
   }
@@ -555,18 +559,37 @@ Use /permission low or /permission-mode ask to enable prompts.`
   playPermissionSound();
   const choice = await ctx.ui.select(
     message,
-    ["Allow once", "Allow all (Low)", "Cancel"]
+    ["Allow once", `Allow all (${LEVEL_INFO["low"].icon} ${LEVEL_INFO["low"].label})`, "Cancel"]
   );
 
   if (choice === "Allow once") return undefined;
 
-  if (choice === "Allow all (Low)") {
+  if (choice === `Allow all (${LEVEL_INFO["low"].icon} ${LEVEL_INFO["low"].label})`) {
     setLevel(state, "low", true, ctx);
-    ctx.ui.notify(`Permission → Low (saved globally)`, "info");
+    ctx.ui.notify(`Permission → ${LEVEL_INFO["low"].icon} ${LEVEL_INFO["low"].label} (saved globally)`, "info");
     return undefined;
   }
 
   return { block: true, reason: "Cancelled" };
+}
+
+// ============================================================================
+// CYCLE PERMISSION LEVEL
+// ============================================================================
+
+function cyclePermissionLevel(
+  state: PermissionState,
+  direction: 1 | -1,
+  ctx: any
+): void {
+  const currentIndex = LEVEL_INDEX[state.currentLevel];
+  const nextIndex = (currentIndex + direction + LEVELS.length) % LEVELS.length;
+  const nextLevel = LEVELS[nextIndex];
+  setLevel(state, nextLevel, false, ctx); // session-only
+  ctx.ui.notify(
+    `Permission → ${LEVEL_INFO[nextLevel].icon} ${LEVEL_INFO[nextLevel].label} (session only)`,
+    "info"
+  );
 }
 
 // ============================================================================
@@ -584,6 +607,22 @@ export default function (pi: ExtensionAPI) {
   pi.registerCommand("permission-mode", {
     description: "Set permission prompt mode (ask or block)",
     handler: (args, ctx) => handlePermissionModeCommand(state, args, ctx),
+  });
+
+  // Cycle forward: minimal → low → medium → high → bypassed → minimal
+  pi.registerShortcut("alt+m", {
+    description: "Cycle permission level forward",
+    handler: async (ctx) => {
+      cyclePermissionLevel(state, 1, ctx);
+    },
+  });
+
+  // Cycle backward: bypassed → high → medium → low → minimal → bypassed
+  pi.registerShortcut("alt+shift+m", {
+    description: "Cycle permission level backward",
+    handler: async (ctx) => {
+      cyclePermissionLevel(state, -1, ctx);
+    },
   });
 
   pi.on("session_start", async (_event, ctx) => {

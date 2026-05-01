@@ -4,12 +4,13 @@ Layered permission control for pi-coding-agent.
 
 ## Levels
 
-| Level | Description | Allowed Operations |
-|-------|-------------|-------------------|
-| **minimal** | Read-only (default) | `cat`, `ls`, `grep`, `git status/log/diff`, `npm list` |
-| **low** | File operations | + `write`/`edit` files |
-| **medium** | Dev operations | + `npm install`, `git commit`, build commands |
-| **high** | Full operations | + `git push`, deployments, scripts |
+| Level | Icon | Label | Description | Allowed Operations |
+|-------|------|-------|-------------|-------------------|
+| **minimal** | 🟢 | Read Only | Read-only (default) | `cat`, `ls`, `grep`, `git status/log/diff`, `npm list` |
+| **low** | 🟡 | File Write | File operations | + `write`/`edit` files |
+| **medium** | 🟠 | Dev Ops | Dev operations | + `npm install`, `git commit`, build commands |
+| **high** | 🔴 | Full Access | Full operations | + `git push`, deployments, scripts |
+| **bypassed** | ⚫ | No Limit | All checks disabled | All operations |
 
 **Dangerous commands** (always prompt, even at high): `sudo`, `rm -rf`, `chmod 777`, `dd`, `mkfs`
 
@@ -28,13 +29,17 @@ pi
 - `/permission-mode` - Switch between ask/block when permission is required
 - `/permission-mode block` - Block instead of prompting
 
+**Keyboard shortcuts:**
+- `alt+m` - Cycle permission level forward (session-only)
+- `alt+shift+m` - Cycle permission level backward (session-only)
+
 **When a command needs higher permission:**
 ```
-🔒 Requires Medium: npm install lodash
+🔒 Requires 🟠 Dev Ops: npm install lodash
 
-  [Allow once]           → Execute this command only
-  [Allow all (Medium)]   → Update global settings and execute
-  [Cancel]               → Don't execute
+  [Allow once]              → Execute this command only
+  [Allow all (🟠 Dev Ops)]  → Update global settings and execute
+  [Cancel]                  → Don't execute
 ```
 
 If permission mode is set to block, commands that require higher permission are blocked without prompting. Use `/permission-mode ask` to restore prompts.
@@ -55,7 +60,7 @@ PI_PERMISSION_LEVEL=bypassed pi -p "do anything"
 The command is blocked but execution continues. The agent receives:
 ```
 Blocked by permission (minimal). Command: npm install lodash
-Allowed at this level: read-only (cat, ls, grep, git status/diff/log, npm list, version checks)
+Allowed at this level: 🟢 Read Only — cat, ls, grep, git status/diff/log, npm list, version checks
 User can re-run with: PI_PERMISSION_LEVEL=medium pi -p "..."
 ```
 
@@ -183,7 +188,7 @@ Edit `~/.pi/agent/settings.json` directly for full control.
 
 The principle: **building/installing is MEDIUM, running code is HIGH**.
 
-### Minimal Level (Read-only)
+### Minimal Level (🟢 Read Only)
 - File reading: `cat`, `less`, `head`, `tail`, `bat`
 - Directory: `ls`, `tree`, `pwd`, `find`, `fd`
 - Search: `grep`, `rg`, `ag`
@@ -191,7 +196,7 @@ The principle: **building/installing is MEDIUM, running code is HIGH**.
 - Git read: `git status`, `git log`, `git diff`, `git show`, `git branch`, `git fetch`
 - Package info: `npm list`, `pip list`, `cargo tree`
 
-### Medium Level (Build/Install/Test - Reversible)
+### Medium Level (🟠 Dev Ops — Build/Install/Test, Reversible)
 - **Node.js**: `npm install/ci/test/build`, `yarn install/add/build/test`, `pnpm`, `bun`
 - **npm run** (safe scripts only): `build`, `test`, `lint`, `format`, `check`, `typecheck`
 - **Python**: `pip install`, `poetry install/build`, `pytest`
@@ -228,7 +233,7 @@ The principle: **building/installing is MEDIUM, running code is HIGH**.
   - **Git**: `commitlint`
 - **File ops**: `mkdir`, `touch`, `cp`, `mv`
 
-### High Level (Runs Code / Irreversible)
+### High Level (🔴 Full Access — Runs Code / Irreversible)
 - **Running code**: `python script.py`, `node app.js`, `cargo run`, `go run`
 - **npm run** (unsafe scripts): `dev`, `start`, `serve`, `watch`, `preview`
 - **Package executors**: `npx`, `bunx`, `pnpx` (run arbitrary packages)
