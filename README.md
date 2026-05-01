@@ -9,32 +9,34 @@ Personal extensions for [pi-coding-agent](https://github.com/mariozechner/pi-cod
 | [🔐 Permission](./permission/) | Layered permission control for bash/write commands | 1.0.2 |
 | [⚡ Token Rate](./token-rate/) | Real-time TPS indicator in the status bar | 1.0.2 |
 
-## Quick Start
+## Installation
 
-### Install All Extensions
+### Via pi install (recommended)
+
+Install both extensions from GitHub:
+
+```bash
+pi install git:github.com/LuckyCurve/pi-extensions
+```
+
+This clones the repository and installs dependencies automatically.
+
+For a one-time trial without persisting:
+
+```bash
+pi -e git:github.com/LuckyCurve/pi-extensions
+```
+
+### Via symlinks (development)
 
 ```bash
 # Clone the repository
-git clone https://github.com/user/pi-extensions.git
-cd pi-extensions
+git clone https://github.com/LuckyCurve/pi-extensions.git
 
-# Install dependencies
-npm install
-
-# Enable via pi config
-pi config
+# Symlink each extension into pi's extensions directory
+ln -s /path/to/pi-extensions/permission ~/.pi/agent/extensions/permission
+ln -s /path/to/pi-extensions/token-rate ~/.pi/agent/extensions/token-rate
 ```
-
-### Install Individual Extensions
-
-Each extension is also published as a standalone npm package and can be installed individually:
-
-```bash
-pi install npm:permission-pi    # Permission control
-pi install npm:token-rate-pi    # Token rate status
-```
-
-Dependencies are resolved and installed automatically during `pi install`.
 
 ## Architecture
 
