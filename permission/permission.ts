@@ -325,9 +325,10 @@ export async function handlePermissionCommand(
   const choice = await ctx.ui.select("Select permission level", options);
   if (!choice) return;
 
-  const selectedLabel = choice.split(":")[0].trim();
-  const newLevel = LEVELS.find((l) => LEVEL_INFO[l].label === selectedLabel);
-  if (!newLevel || newLevel === state.currentLevel) return;
+  const selectedIndex = options.indexOf(choice);
+  if (selectedIndex === -1) return;
+  const newLevel = LEVELS[selectedIndex];
+  if (newLevel === state.currentLevel) return;
 
   const scope = await ctx.ui.select("Save to:", ["Session only", "Global (persists)"]);
   if (!scope) return;
