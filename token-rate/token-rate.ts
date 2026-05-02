@@ -128,10 +128,15 @@ export default function (pi: ExtensionAPI) {
     }
   });
 
-  pi.on("tool_call", async (_event, _ctx) => {
+  pi.on("tool_call", async (_event, ctx) => {
     if (turnStartMs !== null && turnStreamEndMs === null) {
       turnStreamEndMs = Date.now();
     }
+    // Model has stopped streaming; tool is now executing.
+    // Clear stall check so normal tool execution time isn't misreported as stalled.
+    streamState = "waiting";
+    clearStallCheck();
+    renderStatus(ctx);
   });
 
   pi.on("turn_end", async (event, ctx) => {
